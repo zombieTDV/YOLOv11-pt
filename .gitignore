@@ -1,8 +1,8 @@
-venv
-utils
-main.sh
-README.md
-main.py
+.venv
+.utils
+.main.sh
+.README.md
+.main.py
 
 
 # Python
