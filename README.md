@@ -1,14 +1,34 @@
-YOLOv11 re-implementation using PyTorch
+A forked of jahongir7174/YOLOv11-pt for inference.
 
-### Installation
+## Installation Guide
 
+#### Prerequisites
+- Python 3.10 or higher
+
+#### Create Virtual Environment
+```bash
+# Create virtual environment
+python -m venv ENV
 ```
-conda create -n YOLO python=3.10.10
-conda activate YOLO
-conda install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia
-pip install opencv-python
-pip install PyYAML
-pip install tqdm
+
+# Activate virtual environment
+##### On Windows:
+```bash
+ENV\Scripts\activate.bat
+```
+##### On macOS/Linux:
+```bash
+source ENV/bin/activate
+```
+
+#### Install Dependencies
+```bash
+pip install -r requirements.txt
+```
+
+#### Run the Application
+```bash
+python main_inference.py
 ```
 
 ### Train
@@ -50,7 +70,7 @@ pip install tqdm
 * `*` means that it is from original repository, see reference
 * In the official YOLOv11 code, mask annotation information is used, which leads to higher performance
 
-### Dataset structure
+### Dataset structure that was used for traning, NOT inference.
 
     ├── COCO 
         ├── images
