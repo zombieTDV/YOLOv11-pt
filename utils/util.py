@@ -767,3 +767,20 @@ class ComputeLoss:
         loss_dfl *= self.params['dfl']  # dfl gain
 
         return loss_box, loss_cls, loss_dfl
+
+
+
+def scale_coords(from_shape, coords, to_shape):
+    """
+    Rescale coords (xyxy) from one image shape to another.
+
+    from_shape: (h, w) of network input, e.g. (640, 640)
+    coords: tensor [N, 4] of boxes in xyxy format
+    to_shape: (h, w) of original image
+    """
+    gain_w = to_shape[1] / from_shape[1]
+    gain_h = to_shape[0] / from_shape[0]
+
+    coords[:, [0, 2]] *= gain_w
+    coords[:, [1, 3]] *= gain_h
+    return coords
