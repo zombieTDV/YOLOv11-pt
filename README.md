@@ -28,7 +28,7 @@ pip install -r requirements.txt
 
 #### Run the Application
 ```bash
-python main_inference.py
+main_inference.ipynb
 ```
 
 ### Inference:
