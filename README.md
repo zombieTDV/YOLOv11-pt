@@ -1,30 +1,35 @@
-# Evaluation scripts
+A forked of jahongir7174/YOLOv11-pt(https://github.com/jahongir7174/YOLOv11-pt/tree/master) for evalution on 2017 COCO offical validation data set.
 
 ## Installation Guide
 
-### Prerequisites
-
+#### Prerequisites
 - Python 3.10 or higher
 
-#### Create Virtual Environment
+#### Clone the repository
 
 ```bash
+git clone https://github.com/zombieTDV/YOLOv11-pt.git
+cd YOLOv11-pt
+```
+
+#### Create Virtual Environment
+```bash
 # Create virtual environment
-python -m venv ENV
+python -m venv venv
 ```
 
 #### Activate virtual environment
 
-##### On Windows
+##### On Windows:
 
 ```bash
-ENV\Scripts\activate.bat
+venv\Scripts\activate.bat
 ```
 
-##### On macOS/Linux
+##### On macOS/Linux:
 
 ```bash
-source ENV/bin/activate
+source venv/Scripts/Activate.ps1
 ```
 
 #### Install Dependencies
@@ -33,11 +38,13 @@ source ENV/bin/activate
 pip install -r requirements.txt
 ```
 
-#### Result
+#### Inference result can be view in
 
-- evaluation.ipynb
+```bash
+main_inference.ipynb
+```
 
-### Inference
+### How to Inference?
 
-- Added new image for inference to [dataset]
-- Change the spesific image you want to inference in main_inference.py ("IMG_PATH" variable). Can ONLY inference one image at a time.
+1. Added your own images for inference to "./dataset"
+2. specify images that you want to do inference in main_inference.py ("IMG_PATH" variable). Can inference a list of images for each run.
