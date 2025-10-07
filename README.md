@@ -1,4 +1,4 @@
-A forked of jahongir7174/YOLOv11-pt(https://github.com/jahongir7174/YOLOv11-pt/tree/master) for evalution on 2017 COCO offical validation data set.
+A forked of jahongir7174/YOLOv11-pt(https://github.com/jahongir7174/YOLOv11-pt/tree/master) for evalution (make sure to switch branch to **clean-evaluation**) on 2017 COCO offical validation data set.
 
 ## Installation Guide
 
@@ -38,13 +38,14 @@ source venv/Scripts/Activate.ps1
 pip install -r requirements.txt
 ```
 
-#### Inference result can be view in
+#### Evaluation result can be view in
 
 ```bash
-main_inference.ipynb
+evaluation.ipynb
 ```
 
-### How to Inference?
+### How to do Evalution yourself?
 
-1. Added your own images for inference to "./dataset"
-2. specify images that you want to do inference in main_inference.py ("IMG_PATH" variable). Can inference a list of images for each run.
+1. Download the COCO val dataset (or any other variants), like this [2017 val](http://images.cocodataset.org/zips/val2017.zip)
+2. Download the correspond labels, for example, if you downloaded the 2017 val, then it labels are [2017 val annotations](http://images.cocodataset.org/annotations/stuff_annotations_trainval2017.zip)
+3. Make sure that you put those downloaded folder in the correct name that specifile under **CONFIG** section of *evaluation.ipynb*
