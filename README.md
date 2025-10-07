@@ -1,5 +1,4 @@
-A forked of jahongir7174/YOLOv11-pt(https://github.com/jahongir7174/YOLOv11-pt/tree/master) for inference and evalution on 2017 COCO offical validation data set.
-
+A forked of jahongir7174/YOLOv11-pt(https://github.com/jahongir7174/YOLOv11-pt/tree/master) for inference on your data choices.
 ## Installation Guide
 
 #### Prerequisites
