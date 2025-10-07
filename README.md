@@ -1,4 +1,4 @@
-A forked of jahongir7174/YOLOv11-pt(https://github.com/jahongir7174/YOLOv11-pt/tree/master) for inference.
+A forked of jahongir7174/YOLOv11-pt(https://github.com/jahongir7174/YOLOv11-pt/tree/master) for inference and evalution on 2017 COCO offical validation data set.
 
 ## Installation Guide
 
@@ -12,26 +12,33 @@ python -m venv ENV
 ```
 
 #### Activate virtual environment
+
 ##### On Windows:
+
 ```bash
-ENV\Scripts\activate.bat
+venv\Scripts\activate.bat
 ```
+
 ##### On macOS/Linux:
+
 ```bash
-source ENV/bin/activate
+source venv/bin/activate
 ```
 
 #### Install Dependencies
+
 ```bash
 pip install -r requirements.txt
 ```
 
-#### Run the Application
+#### Inference result can be view in
+
 ```bash
 main_inference.ipynb
 ```
 
-### Inference:
-* Added new image for inference to [dataset]
-* Change the spesific image you want to inference in main_inference.py ("IMG_PATH" variable). Can ONLY inference one image at a time.
+### How to Inference?
+
+1. Added your own images for inference to "./dataset"
+2. specify images that you want to do inference in main_inference.py ("IMG_PATH" variable). Can inference a list of images for each run.
 
