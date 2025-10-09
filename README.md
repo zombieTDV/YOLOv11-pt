@@ -22,7 +22,7 @@ python -m venv venv
 ##### On Windows:
 
 ```bash
-venv\Scripts\activate.bat
+venv\Scripts\Activate.ps1
 ```
 
 ##### On macOS/Linux:
