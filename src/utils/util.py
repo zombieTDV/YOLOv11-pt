@@ -8,6 +8,7 @@ import torch
 import torchvision
 from torch.nn.functional import cross_entropy
 
+import yaml
 
 def setup_seed():
     """
@@ -167,6 +168,134 @@ def non_max_suppression(outputs, confidence_threshold=0.001, iou_threshold=0.65)
             break  # time limit exceeded
 
     return output
+
+
+def non_max_suppression_editable(outputs, confidence_threshold=0.001, iou_threshold=0.65, default_threshold=0.001):
+    """
+    Extended version of your working NMS that supports per-class confidence thresholds.
+
+    Args:
+        outputs (torch.Tensor): shape (bs, 4+nc, n_preds)
+        confidence_threshold (float | dict): either a global threshold or per-class {cls_idx: thr}
+        iou_threshold (float): IoU threshold for NMS
+        default_threshold (float): fallback for unspecified classes if dict provided
+    """
+    max_wh = 7680
+    max_det = 300
+    max_nms = 30000
+
+    bs = outputs.shape[0]
+    nc = outputs.shape[1] - 4  # num classes
+
+    # Handle per-class thresholds
+    if isinstance(confidence_threshold, dict):
+        # Build a vector [thr_0, thr_1, ..., thr_nc-1]
+        thr_list = [confidence_threshold.get(i, default_threshold) for i in range(nc)]
+        per_cls_thr = torch.tensor(thr_list, device=outputs.device, dtype=outputs.dtype)
+        # Candidate mask: any class above its threshold
+        cls_block = outputs[:, 4:4 + nc]  # (bs, nc, n)
+        xc = (cls_block > per_cls_thr.view(1, nc, 1)).amax(1)
+    else:
+        xc = outputs[:, 4:4 + nc].amax(1) > confidence_threshold  # original behavior
+        per_cls_thr = None
+
+    start = time()
+    limit = 0.5 + 0.05 * bs
+    output = [torch.zeros((0, 6), device=outputs.device)] * bs
+
+    for index, x in enumerate(outputs):
+        x = x.transpose(0, -1)[xc[index]]  # keep candidates only
+        if not x.shape[0]:
+            continue
+
+        box, cls = x.split((4, nc), 1)
+        box = wh2xy(box)
+
+        if nc > 1:
+            if per_cls_thr is not None:
+                mask = cls > per_cls_thr.view(1, nc)
+            else:
+                mask = cls > confidence_threshold
+            i, j = mask.nonzero(as_tuple=False).T
+            if len(i) == 0:
+                continue
+            conf = cls[i, j]
+            x = torch.cat((box[i], conf[:, None], j[:, None].float()), 1)
+        else:
+            conf, j = cls.max(1, keepdim=True)
+            if per_cls_thr is not None:
+                thr = per_cls_thr[0]
+            else:
+                thr = confidence_threshold
+            mask = conf.view(-1) > thr
+            x = torch.cat((box, conf, j.float()), 1)[mask]
+
+        if not x.shape[0]:
+            continue
+
+        x = x[x[:, 4].argsort(descending=True)[:max_nms]]
+        c = x[:, 5:6] * max_wh
+        boxes, scores = x[:, :4] + c, x[:, 4]
+        indices = torchvision.ops.nms(boxes, scores, iou_threshold)
+        indices = indices[:max_det]
+
+        output[index] = x[indices]
+        if (time() - start) > limit:
+            break
+
+    return output
+
+
+
+
+def load_thresholds_from_args_yaml(yaml_path='utils/args.yaml', default_threshold=0.25):
+    """
+    Returns (per_class_dict, per_class_list, names)
+    - per_class_dict: {int_idx: float_threshold}
+    - per_class_list: list of length nc with default_threshold for unspecified classes
+    - names: dict {int_idx: class_name}
+    """
+    with open(yaml_path, 'r') as f:
+        cfg = yaml.safe_load(f)
+
+    # names in your YAML look like: {0: person, 1: bicycle, ...}
+    # YAML parser may return numeric keys as int or str; normalize:
+    raw_names = cfg.get('names', {})
+    names = {}
+    for k, v in raw_names.items():
+        # keys might be strings like '0' -> convert to int
+        idx = int(k)
+        names[idx] = v
+
+    nc = max(names.keys()) + 1 if names else 0  # number of classes (assumes 0..N-1)
+    # build reverse mapping: name -> idx
+    name2idx = {v: k for k, v in names.items()}
+
+    thr_raw = cfg.get('confidence_thresholds', {}) or {}
+    per_class_dict = {}
+    for k, v in thr_raw.items():
+        # keys may be numeric (int) or strings; determine if key is an int index or a class name
+        try:
+            idx = int(k)  # if key is '3' or 3 -> becomes 3
+        except Exception:
+            # treat as name key
+            name_key = str(k)
+            if name_key in name2idx:
+                idx = name2idx[name_key]
+            else:
+                raise KeyError(f"Unknown class name in confidence_thresholds: {name_key}")
+        per_class_dict[int(idx)] = float(v)
+
+    # Build list form (length nc) using default_threshold for unspecified classes
+    per_class_list = [float(default_threshold) for _ in range(nc)]
+    for idx, thr in per_class_dict.items():
+        if 0 <= idx < nc:
+            per_class_list[idx] = float(thr)
+        else:
+            # If the YAML specified an index outside names range, still keep it in dict but warn
+            print(f"Warning: threshold for class index {idx} is outside detected nc={nc}")
+
+    return per_class_dict, per_class_list, names
 
 
 def smooth(y, f=0.1):
