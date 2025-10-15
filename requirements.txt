@@ -6,3 +6,6 @@ PyYAML
 tqdm
 thop
 matplotlib
+pymongo 
+pillow 
+pyyaml
