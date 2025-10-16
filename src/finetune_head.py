@@ -206,9 +206,10 @@ def main():
               f"cls: {avg_loss_cls:.4f}, dfl: {avg_loss_dfl:.4f}")
 
         # save checkpoint every epoch
-        save_path = f"finetuned_head_epoch{epoch+1}.pt"
-        torch.save({"model": model}, save_path)
-        print(f"[saved] {save_path}")
+        if epoch % 10 == 0:
+            save_path = f"finetuned_head_epoch{epoch+1}.pt"
+            torch.save({"model": model}, save_path)
+            print(f"[saved] {save_path}")
 
 
 if __name__ == "__main__":
