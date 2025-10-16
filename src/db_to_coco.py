@@ -4,12 +4,8 @@ db_to_coco.py
 
 Minimal converter from MongoDB (or JSON export) docs to COCO detection JSON + train list.
 
-Example:
-  python db_to_coco.py --mongo-uri "$env:MONGO_URI" --db face_ml_labeling --collection images --out-dir ./COCO --fs-root /home/user/project
-
-Or:
-  python db_to_coco.py --source json --json-file export.json --out-dir ./COCO
-
+This version will read utils/args.yaml (if present) and use the `names:` mapping there
+to determine category IDs so the produced COCO file uses the same numeric ids the model/visualizer expects.
 """
 import os, json, argparse, shutil
 from pathlib import Path
@@ -21,7 +17,13 @@ try:
 except Exception:
     MongoClient = None
 
-def ensure_dir(d): 
+# New: yaml import for reading utils/args.yaml
+try:
+    import yaml
+except Exception:
+    yaml = None
+
+def ensure_dir(d):
     Path(d).mkdir(parents=True, exist_ok=True)
 
 def atomic_write_json(path: Path, data):
@@ -79,6 +81,47 @@ def resolve_file_path(doc, fs_root):
     # not found
     return None
 
+# New helper: try to load utils/args.yaml and return a dict mapping lowercase name -> int id
+def load_names_from_args_yaml():
+    """
+    Look for utils/args.yaml relative to this script and return a mapping name_lower -> id (int).
+    If yaml library missing or file not found, returns an empty dict.
+    """
+    name2id = {}
+    try:
+        if yaml is None:
+            return {}
+        script_dir = Path(__file__).resolve().parent
+        candidate = script_dir / "utils" / "args.yaml"
+        if not candidate.exists():
+            # also try relative to current working directory
+            candidate = Path("utils") / "args.yaml"
+            if not candidate.exists():
+                return {}
+        with open(candidate, 'r') as f:
+            data = yaml.safe_load(f)
+        names_block = data.get('names') if isinstance(data, dict) else None
+        if names_block is None:
+            return {}
+        # names_block may be a dict {0: 'person', 1: 'bicycle', ...} or a list.
+        if isinstance(names_block, dict):
+            for k, v in names_block.items():
+                try:
+                    kid = int(k)
+                except Exception:
+                    # if keys are strings that are numeric, still cast; otherwise skip
+                    try:
+                        kid = int(str(k))
+                    except Exception:
+                        continue
+                name2id[str(v).lower()] = kid
+        elif isinstance(names_block, list):
+            for i, v in enumerate(names_block):
+                name2id[str(v).lower()] = int(i)
+    except Exception:
+        return {}
+    return name2id
+
 def process_docs(docs, out_dir, fs_root=None, min_conf=0.25):
     out_dir = Path(out_dir)
     images_out = out_dir / "images" / "train"
@@ -86,9 +129,29 @@ def process_docs(docs, out_dir, fs_root=None, min_conf=0.25):
     ensure_dir(images_out)
     ensure_dir(ann_dir)
 
-    categories_map = {}   # name -> id
+    # Load names mapping from utils/args.yaml (if present)
+    names_map = load_names_from_args_yaml()  # name_lower -> id (int)
+    if names_map:
+        print(f"[info] Loaded {len(names_map)} names from utils/args.yaml")
+    else:
+        print("[info] No utils/args.yaml mapping found or yaml not available; falling back to auto ids")
+
+    categories_map = {}   # name (original-case) -> id
     categories_list = []
-    next_cat_id = 1  # start from 1
+    # If names_map present, pre-populate categories_list and categories_map so IDs match the model's expectation
+    used_ids = set()
+    if names_map:
+        # create canonical categories entries for all names in names_map
+        # keep original name casing from names_map keys? we only have lower-case keys from loader,
+        # so store title-cased name for readability while preserving id.
+        for name_lower, cid in sorted(names_map.items(), key=lambda x: int(x[1])):
+            # preserve the original label using the lowercase key? We'll use the lowercase key as the canonical lookup
+            display_name = name_lower  # keep lower-case to match DB lookups in lower-case
+            categories_list.append({"id": int(cid), "name": display_name})
+            categories_map[display_name] = int(cid)
+            used_ids.add(int(cid))
+
+    next_cat_id = (max(used_ids) + 1) if used_ids else 1  # start after pre-populated ids (or 1)
 
     images = []
     annotations = []
@@ -139,22 +202,45 @@ def process_docs(docs, out_dir, fs_root=None, min_conf=0.25):
             label = a.get("label")
             if label is None:
                 label = a.get("category_id")
+
+            cat_id = None
             # numeric label?
-            if isinstance(label, (int, float)) or (isinstance(label, str) and label.isdigit()):
+            if isinstance(label, (int, float)) or (isinstance(label, str) and str(label).isdigit()):
+                # use numeric label directly (but ensure we don't clash with pre-populated ids)
                 cat_id = int(label)
-                if cat_id not in [c['id'] for c in categories_list]:
+                if cat_id not in used_ids:
+                    # preserve numeric label by adding to categories_list
                     categories_list.append({"id": cat_id, "name": str(cat_id)})
                     categories_map[str(cat_id)] = cat_id
-                    next_cat_id = max(next_cat_id, cat_id+1)
+                    used_ids.add(cat_id)
+                    next_cat_id = max(next_cat_id, cat_id + 1)
             else:
-                label_name = str(label)
-                if label_name in categories_map:
-                    cat_id = categories_map[label_name]
+                # treat as string label name; prefer names_map if it contains this name (case-insensitive)
+                label_name = str(label).strip()
+                label_lower = label_name.lower()
+                if label_lower in categories_map:
+                    # categories_map stores lower-case keys when pre-populated
+                    cat_id = categories_map[label_lower]
+                elif label_lower in names_map:
+                    # name exists in utils/args.yaml; adopt that id
+                    cat_id = int(names_map[label_lower])
+                    categories_map[label_lower] = cat_id
+                    # also add to categories_list if not already present
+                    if cat_id not in used_ids:
+                        categories_list.append({"id": cat_id, "name": label_lower})
+                        used_ids.add(cat_id)
+                    next_cat_id = max(next_cat_id, cat_id + 1)
                 else:
+                    # unknown name: assign a new id (after existing ones)
                     cat_id = next_cat_id
-                    categories_map[label_name] = cat_id
-                    categories_list.append({"id": cat_id, "name": label_name})
+                    categories_map[label_lower] = cat_id
+                    categories_list.append({"id": cat_id, "name": label_lower})
+                    used_ids.add(cat_id)
                     next_cat_id += 1
+
+            # ensure we have an integer cat_id
+            if cat_id is None:
+                continue
 
             annotations.append({
                 "id": ann_id,
@@ -169,12 +255,15 @@ def process_docs(docs, out_dir, fs_root=None, min_conf=0.25):
 
         img_id += 1
 
+    # Sort categories by id for readability
+    categories_sorted = sorted(categories_list, key=lambda x: int(x['id']))
+
     coco_out = {
         "info": {},
         "licenses": [],
         "images": images,
         "annotations": annotations,
-        "categories": sorted(categories_list, key=lambda x: int(x['id']))
+        "categories": categories_sorted
     }
 
     ann_path = ann_dir / "instances_train.json"
@@ -184,7 +273,7 @@ def process_docs(docs, out_dir, fs_root=None, min_conf=0.25):
         for im in images:
             f.write(im["file_name"] + "\n")
 
-    print(f"[done] Wrote {ann_path} images:{len(images)} anns:{len(annotations)} cats:{len(categories_list)}")
+    print(f"[done] Wrote {ann_path} images:{len(images)} anns:{len(annotations)} cats:{len(categories_sorted)}")
     return ann_path
 
 def main():

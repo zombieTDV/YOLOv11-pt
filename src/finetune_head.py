@@ -15,7 +15,7 @@ from tqdm import tqdm
 # Import the ComputeLoss class from your utils
 import sys
 sys.path.append('..')  # Adjust path as needed to import from utils
-from utils.util import ComputeLoss
+from utils.util import ComputeLoss, non_max_suppression
 
 # ====== dataset loader ======
 class CocoDataset(Dataset):
@@ -77,17 +77,31 @@ class CocoDataset(Dataset):
         return img, target
 
 def collate_fn(batch):
-    """Custom collate function to handle variable numbers of targets"""
+    """Custom collate function that assigns batch-relative indices."""
     imgs, targets = zip(*batch)
     imgs = torch.stack(imgs, 0)
-    
-    # Combine all targets into a single dictionary
-    combined_targets = {
-        'box': torch.cat([t['box'] for t in targets], 0),
-        'cls': torch.cat([t['cls'] for t in targets], 0),
-        'idx': torch.cat([t['idx'] for t in targets], 0)
-    }
-    
+
+    boxes_list, cls_list, idx_list = [], [], []
+    for batch_i, t in enumerate(targets):
+        if t['box'].shape[0] > 0:
+            boxes_list.append(t['box'])
+            cls_list.append(t['cls'])
+            # ✅ Assign batch-relative index here
+            idx_list.append(torch.full((t['box'].shape[0], 1), batch_i, dtype=torch.long))
+
+    if boxes_list:
+        combined_targets = {
+            'box': torch.cat(boxes_list, 0),
+            'cls': torch.cat(cls_list, 0),
+            'idx': torch.cat(idx_list, 0)
+        }
+    else:
+        combined_targets = {
+            'box': torch.zeros((0, 4), dtype=torch.float32),
+            'cls': torch.zeros((0, 1), dtype=torch.long),
+            'idx': torch.zeros((0, 1), dtype=torch.long)
+        }
+
     return imgs, combined_targets
 
 # ====== main ======
@@ -196,20 +210,34 @@ def main():
             running_loss_box += loss_box.item()
             running_loss_cls += loss_cls.item()
             running_loss_dfl += loss_dfl.item()
+        
 
         avg_loss = running_loss / len(dataloader)
         avg_loss_box = running_loss_box / len(dataloader)
         avg_loss_cls = running_loss_cls / len(dataloader)
         avg_loss_dfl = running_loss_dfl / len(dataloader)
         
-        print(f"[epoch {epoch+1}] total_loss: {avg_loss:.4f}, box: {avg_loss_box:.4f}, "
-              f"cls: {avg_loss_cls:.4f}, dfl: {avg_loss_dfl:.4f}")
+        model.eval()
+        with torch.no_grad():
+            imgs, targets = next(iter(dataloader))
+            imgs = imgs.to(device)
+            outs = model(imgs)
+            preds = non_max_suppression(outs, 0.25, 0.45)  # adapt to your impl
+            for i, p in enumerate(preds):
+                if p is None or p.numel() == 0:
+                    print(f"image {i}: no detections")
+                    continue
+                cls_indices = p[:, -1].int().cpu().unique().tolist()
+                print(f"image {i} predicted class indices:", cls_indices)
+                
+                print(f"[epoch {epoch+1}] total_loss: {avg_loss:.4f}, box: {avg_loss_box:.4f}, "
+                    f"cls: {avg_loss_cls:.4f}, dfl: {avg_loss_dfl:.4f}")
 
         # save checkpoint every epoch
-        if epoch % 10 == 0:
-            save_path = f"finetuned_head_epoch{epoch+1}.pt"
-            torch.save({"model": model}, save_path)
-            print(f"[saved] {save_path}")
+        # if epoch % 0 == 0:
+        save_path = f"finetuned_head_epoch{epoch+1}.pt"
+        torch.save({"model": model}, save_path)
+        print(f"[saved] {save_path}")
 
 
 if __name__ == "__main__":
