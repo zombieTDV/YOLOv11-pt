@@ -217,21 +217,21 @@ def main():
         avg_loss_cls = running_loss_cls / len(dataloader)
         avg_loss_dfl = running_loss_dfl / len(dataloader)
         
-        model.eval()
-        with torch.no_grad():
-            imgs, targets = next(iter(dataloader))
-            imgs = imgs.to(device)
-            outs = model(imgs)
-            preds = non_max_suppression(outs, 0.25, 0.45)  # adapt to your impl
-            for i, p in enumerate(preds):
-                if p is None or p.numel() == 0:
-                    print(f"image {i}: no detections")
-                    continue
-                cls_indices = p[:, -1].int().cpu().unique().tolist()
-                print(f"image {i} predicted class indices:", cls_indices)
+        # model.eval()
+        # with torch.no_grad():
+        #     imgs, targets = next(iter(dataloader))
+        #     imgs = imgs.to(device)
+        #     outs = model(imgs)
+        #     preds = non_max_suppression(outs, 0.25, 0.45)  # adapt to your impl
+        #     for i, p in enumerate(preds):
+        #         if p is None or p.numel() == 0:
+        #             print(f"image {i}: no detections")
+        #             continue
+        #         cls_indices = p[:, -1].int().cpu().unique().tolist()
+        #         print(f"image {i} predicted class indices:", cls_indices)
                 
-                print(f"[epoch {epoch+1}] total_loss: {avg_loss:.4f}, box: {avg_loss_box:.4f}, "
-                    f"cls: {avg_loss_cls:.4f}, dfl: {avg_loss_dfl:.4f}")
+        print(f"[epoch {epoch+1}] total_loss: {avg_loss:.4f}, box: {avg_loss_box:.4f}, "
+            f"cls: {avg_loss_cls:.4f}, dfl: {avg_loss_dfl:.4f}")
 
         # save checkpoint every epoch
         # if epoch % 0 == 0:
