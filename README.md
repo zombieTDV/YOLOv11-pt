@@ -1,4 +1,4 @@
-A forked of jahongir7174/YOLOv11-pt(https://github.com/jahongir7174/YOLOv11-pt/tree/master) for evalution (make sure to switch branch to **clean-evaluation**) on 2017 COCO offical validation data set.
+A forked of jahongir7174/YOLOv11-pt(https://github.com/jahongir7174/YOLOv11-pt/tree/master) for inference and evalution on 2017 COCO offical validation data set.
 
 ## Installation Guide
 
@@ -23,7 +23,7 @@ python -m venv venv
 ##### On Windows:
 
 ```bash
-venv\Scripts\activate.bat
+venv\Scripts\Activate.ps1
 ```
 
 ##### On macOS/Linux:
