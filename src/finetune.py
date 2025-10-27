@@ -261,11 +261,11 @@ def main():
 
         # save checkpoints
         if epoch % 10 == 0:
-            torch.save({"model": model}, f"finetuned_head_epoch{epoch+1}.pt")
+            torch.save({"model": model}, f"internal_assets/weights/finetuned_epoch{epoch+1}.pt")
             if avg_val_loss < best_val_loss:
                 best_val_loss = avg_val_loss
-                torch.save({"model": model}, "finetuned_head_best.pt")
-                print(f"[saved best] finetuned_head_best.pt (val_loss {best_val_loss:.4f})")
+                torch.save({"model": model}, "internal_assets/weights/finetuned_best.pt")
+                print(f"[saved best] finetuned_best.pt (val_loss {best_val_loss:.4f})")
 
     # plot train/val loss vs epoch
     epochs = list(range(1, args.epochs + 1))
