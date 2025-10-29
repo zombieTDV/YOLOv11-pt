@@ -48,3 +48,5 @@ my_image147.jpg
 my_image148.jpg
 my_image149.jpg
 my_image15.jpg
+my_image1.jpg
+my_image100.jpg
