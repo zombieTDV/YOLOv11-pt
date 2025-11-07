@@ -5,6 +5,8 @@
 .main.py
 src/uploads
 src/COCO
+private
+.env
 
 annotations
 dataset
