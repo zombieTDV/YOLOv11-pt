@@ -2,41 +2,57 @@ A forked of jahongir7174/YOLOv11-pt(https://github.com/jahongir7174/YOLOv11-pt/t
 
 ## Installation Guide
 
-#### Prerequisites
-- Python 3.10 or higher
+### Prerequisites
+- Python **3.9 or higher** (3.12 recommended)
+- Git installed
 
-#### Clone the repository
+---
+
+### Step 1: Clone the Repository
 
 ```bash
 git clone https://github.com/zombieTDV/YOLOv11-pt.git
 cd YOLOv11-pt
 ```
 
-#### Create Virtual Environment
+### Step 2: Create Virtual Environment
+
 ```bash
-# Create virtual environment
-python -m venv venv
+python -m venv .venv
 ```
 
-#### Activate virtual environment
+Activate the virtual environment:
 
-##### On Windows:
+- On Windows (PowerShell):
 
 ```bash
-venv\Scripts\Activate.ps1
+  .venv\Scripts\Activate.ps1
 ```
 
-##### On macOS/Linux:
+- On macOS/Linux:
 
 ```bash
-source venv/Scripts/Activate.ps1
+  source .venv/bin/activate
 ```
 
-#### Install Dependencies
+---
+
+### Step 3: Install the Project
+
+Development mode (recommended):
 
 ```bash
+pip install -e .[dev]
 pip install -r requirements.txt
 ```
+
+Runtime only (minimal install):
+
+```bash
+pip install -e .
+```
+
+---
 
 #### Evaluation result can be view in
 

@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "Yolo"
+version = "0.1.0"
+description = ""
+authors = []
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [ 
+    "mongita"
+]  # runtime deps go here
+
+
+[project.optional-dependencies]
+dev = [
+    "pip-tools",
+    "pre-commit",
+    "black",
+    "isort",
+    "python-dotenv",
+    "opencv-python",
+    "PyYAML",
+    "tqdm",
+    "thop",
+    "matplotlib",
+    "pymongo",
+    "pillow",
+    "pyyaml"
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["Yolo*"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+
+[tool.black]
+line-length = 88
+target-version = ["py39"]
+
+
+[tool.isort]
+profile = "black"
+line_length = 88
