@@ -1,0 +1,52 @@
+{
+  "summary": {
+    "AP_IoU=0.50:0.95_area=all_maxDets=100": 0.11399214280632346,
+    "AP_IoU=0.50_area=all_maxDets=100": 0.15752590330493155,
+    "AP_IoU=0.75_area=all_maxDets=100": 0.11693831513434978,
+    "AP_IoU=0.50:0.95_area=small_maxDets=100": 0.0439053905390539,
+    "AP_IoU=0.50:0.95_area=medium_maxDets=100": 0.13319189061763317,
+    "AP_IoU=0.50:0.95_area=large_maxDets=100": 0.17293729372937294,
+    "AR_IoU=0.50:0.95_area=all_maxDets=1": 0.17794178794178794,
+    "AR_IoU=0.50:0.95_area=all_maxDets=10": 0.2221205821205821,
+    "AR_IoU=0.50:0.95_area=all_maxDets=100": 0.2221205821205821,
+    "AR_IoU=0.50:0.95_area=small_maxDets=100": 0.08910256410256409,
+    "AR_IoU=0.50:0.95_area=medium_maxDets=100": 0.28030303030303033,
+    "AR_IoU=0.50:0.95_area=large_maxDets=100": 0.22962962962962968
+  },
+  "metadata": {
+    "conf_threshold": 0.25,
+    "iou_thrs": [
+      0.5,
+      0.55,
+      0.6,
+      0.65,
+      0.7,
+      0.75,
+      0.8,
+      0.85,
+      0.8999999999999999,
+      0.95
+    ],
+    "area_ranges": [
+      [
+        0,
+        10000000000.0
+      ],
+      [
+        0,
+        1024
+      ],
+      [
+        1024,
+        9216
+      ],
+      [
+        9216,
+        10000000000.0
+      ]
+    ],
+    "num_images_processed": 20,
+    "number_of_predictions": 97
+  },
+  "evaluation_times": 2.7990580999976373
+}

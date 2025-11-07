@@ -3,7 +3,12 @@
 .main.sh
 .README.md
 .main.py
+src/uploads
+src/COCO
 
+annotations
+dataset
+venv
 
 # Python
 __pycache__/
