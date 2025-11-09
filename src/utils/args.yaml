@@ -1,22 +1,22 @@
-min_lr: 0.000100000000            # initial learning rate
-max_lr: 0.010000000000            # maximum learning rate
-momentum: 0.9370000000            # SGD momentum/Adam beta1
-weight_decay: 0.000500            # optimizer weight decay
-warmup_epochs: 3.00000            # warmup epochs
-box: 7.500000000000000            # box loss gain
-cls: 0.500000000000000            # cls loss gain
-dfl: 1.500000000000000            # dfl loss gain
-hsv_h: 0.0150000000000            # image HSV-Hue augmentation (fraction)
-hsv_s: 0.7000000000000            # image HSV-Saturation augmentation (fraction)
-hsv_v: 0.4000000000000            # image HSV-Value augmentation (fraction)
-degrees: 0.00000000000            # image rotation (+/- deg)
-translate: 0.100000000            # image translation (+/- fraction)
-scale: 0.5000000000000            # image scale (+/- gain)
-shear: 0.0000000000000            # image shear (+/- deg)
-flip_ud: 0.00000000000            # image flip up-down (probability)
-flip_lr: 0.50000000000            # image flip left-right (probability)
-mosaic: 1.000000000000            # image mosaic (probability)
-mix_up: 0.000000000000            # image mix-up (probability)
+min_lr: 0.0001
+max_lr: 0.01
+momentum: 0.937
+weight_decay: 0.0005
+warmup_epochs: 3.0
+box: 7.5
+cls: 0.5
+dfl: 1.5
+hsv_h: 0.015
+hsv_s: 0.7
+hsv_v: 0.4
+degrees: 0.0
+translate: 0.1
+scale: 0.5
+shear: 0.0
+flip_ud: 0.0
+flip_lr: 0.5
+mosaic: 1.0
+mix_up: 0.0
 names:
   0: person
   1: bicycle
@@ -98,6 +98,20 @@ names:
   77: teddy bear
   78: hair drier
   79: toothbrush
-
-
-confidence_thresholds:
+  80: bracelet
+  81: glasses
+  82: t-shirt
+  83: cabinet
+  84: dishwasher
+  85: shelf
+  86: sofa
+  87: table
+  88: mouses
+  89: phone-batteries
+  90: phonecases
+  91: smartphones
+  92: Giấy
+  93: Giấy note
+  94: Giấy than
+confidence_thresholds: null
+nc: 95

@@ -43,7 +43,8 @@ Development mode (recommended):
 
 ```bash
 pip install -e .[dev]
-pip install -r requirements.txt
+train: ./images/classes-Clothing-Accessories/train
+val: ./images/classes-Clothing-Accessories/val
 ```
 
 Runtime only (minimal install):
